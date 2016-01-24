@@ -1,0 +1,19 @@
+﻿<Properties StartupItem="Assembly-CSharp.csproj">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Item\Script\Fire.cs">
+    <Files>
+      <File FileName="Assets\Box\Scripts\BoxController.cs" Line="473" Column="3" />
+      <File FileName="Assets\Box\Scripts\Damagable.cs" Line="20" Column="39" />
+      <File FileName="Assets\Box\Scripts\CameraControl.cs" Line="94" Column="6" />
+      <File FileName="Assets\Box\Scripts\UserInputController.cs" Line="125" Column="36" />
+      <File FileName="Assets\Item\Script\Stone.cs" Line="27" Column="33" />
+      <File FileName="Assets\Item\Script\StoneBall.cs" Line="34" Column="57" />
+      <File FileName="Assets\Item\Script\Fire.cs" Line="44" Column="11" />
+      <File FileName="Assets\Item\Script\FireBall.cs" Line="27" Column="19" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>

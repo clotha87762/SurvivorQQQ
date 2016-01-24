@@ -1,0 +1,4 @@
+sceneSetups:
+- path: Assets/BagIdea/Scenes/ShowModel.unity
+  isLoaded: 1
+  isActive: 1

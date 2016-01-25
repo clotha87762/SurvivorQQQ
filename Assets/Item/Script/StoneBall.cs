@@ -8,6 +8,7 @@ public class StoneBall : MonoBehaviour {
     float speed;
     float damage;
     Vector3 nowVec;
+
     Vector3 ownerLast;
     [SerializeField]
     private ParticleSystem explode; 

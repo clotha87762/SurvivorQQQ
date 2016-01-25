@@ -16,6 +16,7 @@ public class Monster1 : MonoBehaviour {
     float randomMove;
     bool isRoaming;
     bool isGrounded;
+    bool isHitWall;
     GameObject chasing;
     bool isChase;
     public float atkRange = 50.0f;
@@ -40,6 +41,9 @@ public class Monster1 : MonoBehaviour {
 
     void FixedUpdate()
     {
+        if (gameObject.GetComponent<BoxController>().acting)
+            return;
+        
         if(!isChase)
         timeCount += Time.fixedDeltaTime;
 
@@ -138,29 +142,59 @@ public class Monster1 : MonoBehaviour {
                 }
 
             }
+
+            Transform checkWall = transform.FindChild("checkWall");
+            Collider[] toCheck = Physics.OverlapSphere(checkWall.position, 0.01f);
+            isHitWall = false;
+
+            foreach (Collider c in toCheck)
+            {
+                // Debug.Log(c.transform.tag);
+                if (c.transform.tag != "Monster" && c.transform.tag != "Player" && c.transform.tag != "PlayerGroundCheck" && !c.isTrigger)
+                {
+
+                    isHitWall = true;
+
+                }
+            }
+
+            if (isHitWall)
+                roamingVec = roamingVec * -1;
+            
+
             if (isGrounded)
                 transform.rotation = temp;
         }
         else if (isChase)
         {
+           
+
             isRoaming = false;
             timeCount = 0;
             randomWait = ((float)Random.Range(1000, 2000)) / 1000.0f;
             roamingVec = chasing.transform.position - transform.position;
             roamingVec.Normalize();
 
+            float d = Vector3.Distance(chasing.transform.position,transform.position);
+            if (d <= 0.8f)
+            {
+                roamingVec = Vector3.zero;
+            }
+
+
         }
            // Debug.Log("roaming");
             roamingVec = new Vector3(roamingVec.x, 0, roamingVec.z);
             if(isChase)
-            monster.Move(roamingVec, true);
+                monster.Move(roamingVec, true);
             else
-            monster.Move(roamingVec, false);
+                monster.Move(roamingVec, false);
 
     }
 
     void GoAttack()
     {
+        
         if (attackCDCount < attackCD) return;
 
         if (chasing != null && isChase)
@@ -168,7 +202,7 @@ public class Monster1 : MonoBehaviour {
             float d = Vector3.Distance(chasing.transform.position,transform.position);
             if (d <= 0.8f)
             {
-               // Debug.Log("Attack");
+                Debug.Log("Attack");
                 monster.Attack();
                 attackCDCount = 0;
             }

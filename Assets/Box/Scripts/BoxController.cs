@@ -15,11 +15,17 @@ public class BoxController : MonoBehaviour {
 	[Range(0.0f, 1.0f)][SerializeField] private float notGroundedScale = 0.5f;
 	[Range(0.0f, 1.0f)][SerializeField] private float attackStateScale = 0.3f;
 	[Range(0.0f, 1.0f)][SerializeField] private float damageStateScale = 0.3f;
+	[SerializeField] private float attackRange = 0.3f;
+	[SerializeField] private float sprintAttackRange = 0.5f;
+	[SerializeField] private float jumpAttackRange = 1.0f;
+	[SerializeField] private float attackHitScale = 1.0f;
+	[SerializeField] private float sprintAttackHitScale = 5.0f;
+	[SerializeField] private float jumpAttackHitScale = 5.0f;
 	[SerializeField] private ParticleSystem deathEffect;
 	[SerializeField] private ParticleSystem spawnEffect;
 	[SerializeField] private ParticleSystem damageEffect;
 	[SerializeField] private ParticleSystem jumpAttackEffect;
-
+    [SerializeField] private ParticleSystem freezeEffect;
 	private int DeathTimes = 0;
 
 	private Rigidbody mRigidbody;
@@ -47,6 +53,8 @@ public class BoxController : MonoBehaviour {
 
 	private bool controlByPlayer;
 
+    private float tempSpeed;
+
 	private Damagable mDamagable;
 
 	private Vector3 mRollVector;
@@ -63,6 +71,11 @@ public class BoxController : MonoBehaviour {
 	public bool acting = false;
 	private bool movable = true;
 	public float fallingSpeed = 0.0f;
+    private bool fallingSpeedRecording = true;
+    private bool freeze = false;
+
+    private float freezeTime;
+    private float freezeCount;
 
 	//private float ATK = 3.0f;
 	//private float HP = 10.0f;
@@ -94,6 +107,21 @@ public class BoxController : MonoBehaviour {
 	{
 		GroundStateCheck();
 		UpdateFallingSpeed();
+
+        if (freeze)
+        {
+            freezeCount += Time.fixedDeltaTime;
+            if (freezeCount >= freezeTime)
+            {
+                freeze = false;
+                acting = false;
+                freezeCount = 0;
+
+                mAnimator.enabled = true;
+                freezeEffect.Stop();
+            }
+        }
+
 	}
 
 	public void Move(Vector3 mVector, bool mRunning)
@@ -228,12 +256,13 @@ public class BoxController : MonoBehaviour {
 			if ( !mJumpAttack && !mRoll && fallingSpeed > 9.0f) 
 			{
 				mDamagable.Damage(Vector3.zero, fallingSpeed * 2.0f);
-				fallingSpeed = 0.0f;
-			}
+            }
+            fallingSpeed = 0.0f;
+            fallingSpeedRecording = true;
 		}
 		float VY = -mRigidbody.velocity.y;
 
-		if ( (!mGrounded && mGroundTrigger.isGrounded ()) || (VY < 0.1f && VY > 0.0f)) 
+		if ( (mGroundTrigger.isGrounded ()) || (VY < 0.1f && VY > 0.0f)) 
 		{
 			if (mJumpAttack)
 				JumpAttackCompleteEvent ();
@@ -244,8 +273,10 @@ public class BoxController : MonoBehaviour {
 
 	void UpdateFallingSpeed()
 	{
-		fallingSpeed = (-mRigidbody.velocity.y > fallingSpeed) ? -mRigidbody.velocity.y : fallingSpeed;
-	}
+        if (fallingSpeedRecording)
+            fallingSpeed = (-mRigidbody.velocity.y > fallingSpeed) ? -mRigidbody.velocity.y : fallingSpeed;
+        else fallingSpeed = 0.0f;
+    }
 
 
 	/// 
@@ -298,7 +329,14 @@ public class BoxController : MonoBehaviour {
 	public void Attack()
 	{
 		if (acting) return;
-		//jump attack
+        if (gameObject.transform.tag == "Monster")
+        {
+            mAttack = true;
+            acting = true;
+            disableableMovable();
+            return;
+        }
+        //jump attack
 		//sprint attack
 		if (mSprintTimer > 0.4f) 
 		{
@@ -335,7 +373,7 @@ public class BoxController : MonoBehaviour {
 	public void AttackHitEvent()
 	{
 		attackHit = true;
-		GetComponent<Damagable>().HitEvent(0.3f, 1.0f);
+        GetComponent<Damagable>().HitEvent(attackRange, attackHitScale);
 	}
 
 	public void AttackLeaveEvent()
@@ -353,7 +391,7 @@ public class BoxController : MonoBehaviour {
 	public void SprintAttackHitEvent()
 	{
 		attackHit = true;
-		GetComponent<Damagable>().HitEvent(0.5f, 5.0f);
+        GetComponent<Damagable>().HitEvent(sprintAttackRange, sprintAttackHitScale);
 	}
 
 	public void SprintAttackLeaveEvent()
@@ -364,6 +402,7 @@ public class BoxController : MonoBehaviour {
 
 	public void JumpAttackCompleteEvent()
 	{
+        fallingSpeedRecording = false;
 		mJumpAttack = false;
 		acting = false;
 		enableMovable();
@@ -377,7 +416,7 @@ public class BoxController : MonoBehaviour {
 	public void JumpAttackHitEvent()
 	{
 		attackHit = true;
-		GetComponent<Damagable>().HitEvent(1.0f, 5.0f, -transform.forward * 0.5f, true);
+        GetComponent<Damagable>().HitEvent(jumpAttackRange, jumpAttackHitScale, -transform.forward * 0.5f, true);
 	}
 
 	public void JumpAttackLeaveEvent()
@@ -396,7 +435,7 @@ public class BoxController : MonoBehaviour {
 	}
 
 	void JumpAttackHitGroundEffect()
-	{
+    {
 		Destroy(Instantiate(jumpAttackEffect.gameObject, transform.position - transform.up * 0.4f, Quaternion.Euler(270.0f, 180.0f, 0)) as GameObject, jumpAttackEffect.startLifetime);
 	}
 
@@ -441,7 +480,7 @@ public class BoxController : MonoBehaviour {
 		mHeadCheck.enabled = false;
 		SetRenderer(false);
 		Destroy(Instantiate(deathEffect.gameObject, transform.position, transform.rotation) as GameObject, deathEffect.startLifetime);
-		if (!controlByPlayer) Destroy(this);
+		if (!controlByPlayer) Destroy(gameObject);
 		else
 		{
 			transform.gameObject.GetComponent<UserInputController>().SetEnable(false);
@@ -471,4 +510,19 @@ public class BoxController : MonoBehaviour {
 
 		mDamagable.UseItem();
 	}
+
+    public void Freeze(float time)
+    {
+        acting = true;
+        freeze = true;
+        freezeTime = time;
+        freezeCount = 0;
+       // Debug.Log("PLAY");
+        freezeEffect.Play();
+        mAnimator.enabled = false;
+        //tempSpeed = mAnimator.speed;
+         //mAnimator.speed = 0;
+        //g.transform.parent = gameObject.transform;
+       // Destroy(g, time);
+    }
 }

@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/BagIdea/Scenes/ShowModel.unity
+- path: Assets/battlefieldtest.unity
   isLoaded: 1
   isActive: 1

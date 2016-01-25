@@ -82,15 +82,20 @@ public class Damagable : MonoBehaviour {
 	public void HitEvent(float radius = 0.3f, float damageActionScale = 1.0f, Vector3 sphereOffset = default(Vector3), bool relativeHit = false)
     {   
         //GameObject checkSphere = GameObject.Find("Body/rightHand");
-		Collider[] hitObj = Physics.OverlapSphere(checkSphere.transform.position + sphereOffset,radius);
-        
+		Collider[] hitObj = Physics.OverlapSphere(checkSphere.transform.position + sphereOffset, radius);
+        Debug.Log("qqqq1");
         foreach (Collider c in hitObj)
         {
-            if((c.tag=="Player"&&c.gameObject!=gameObject)||c.tag=="Monster"){
-				if(relativeHit) 
-					c.gameObject.GetComponent<Damagable>().Damage((c.transform.position-gameObject.transform.position).normalized * damageActionScale,ATK);
-				else 
-					c.gameObject.GetComponent<Damagable>().Damage( gameObject.transform.forward * damageActionScale,ATK);
+            Debug.Log("qqqq2");
+            Debug.Log(c.gameObject.tag);
+            Damagable cDamamgable = c.gameObject.GetComponent<Damagable>();
+            if (c.gameObject != gameObject && cDamamgable!=null)
+            {
+                Debug.Log("qqqq3");
+                if(relativeHit)
+                    cDamamgable.Damage((c.transform.position - gameObject.transform.position).normalized * damageActionScale, ATK);
+				else
+                    cDamamgable.Damage(gameObject.transform.forward * damageActionScale, ATK);
 			}
         }
     }
